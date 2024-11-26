@@ -5,5 +5,3 @@ include
 share
 __pycache__
 venv
-alembic
-alembic.ini

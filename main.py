@@ -22,11 +22,9 @@ def get_db():
         db.close()
 
 
-# JWT Token dependency
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="admin/login")
 
 
-# JWT Decoding
 def get_current_admin(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -46,7 +44,6 @@ def get_current_admin(token: str = Depends(oauth2_scheme), db: Session = Depends
     return admin
 
 
-# Register Admin
 @app.post("/admin/register/", status_code=201)
 def register_admin(admin: schemas.AdminCreate, db: Session = Depends(get_db)):
     existing_admin = db.query(models.Admin).filter(models.Admin.username == admin.username).first()
@@ -59,8 +56,10 @@ def register_admin(admin: schemas.AdminCreate, db: Session = Depends(get_db)):
     db.refresh(new_admin)
     return {"message": "Admin registered successfully"}
 
+@app.get("/admin/test/", status_code=201)
+def test():
+    return "sdkjhfkshkfksjd"
 
-# Admin Login
 @app.post("/admin/login/", response_model=schemas.Token)
 def login_admin(login_data: schemas.AdminLogin, db: Session = Depends(get_db)):
     admin = db.query(models.Admin).filter(models.Admin.username == login_data.username).first()
@@ -69,7 +68,6 @@ def login_admin(login_data: schemas.AdminLogin, db: Session = Depends(get_db)):
     access_token = auth_utils.create_access_token(data={"sub": admin.username})
     return {"access_token": access_token, "token_type": "bearer"}
 
-# Protected Create Item
 @app.post("/admin/create-item/", status_code=201)
 async def create_item(
         title: str = Form(...),  # Expect `title` from form-data
@@ -98,7 +96,6 @@ async def create_item(
 
     return {"id": new_item.id, "title": new_item.title, "image_path": new_item.image_path}
 
-# List Items (Protected)
 @app.get("/admin/items/", status_code=200)
 def get_items(db: Session = Depends(get_db), current_admin: models.Admin = Depends(get_current_admin)):
     items = db.query(models.Item).all()
